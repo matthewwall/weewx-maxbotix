@@ -1,0 +1,16 @@
+0.5 25oct2016
+* better support of different models
+
+0.4 21sep2016
+* improve direct testing of driver, service, and sensor
+* fix unit conversion when using as a service
+* improve serial handling
+
+0.3 27oct2015
+* include DRIVER_NAME hint for weewx 3.2
+
+0.2 14oct2015
+* update readme with weewx 3.x instructions
+
+0.1 17mar2015
+* initial release
