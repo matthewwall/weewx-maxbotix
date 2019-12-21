@@ -42,7 +42,7 @@ import weewx.engine
 import weewx.units
 
 DRIVER_NAME = "Maxbotix"
-DRIVER_VERSION = "X"
+DRIVER_VERSION = "0.5"
 DEFAULT_MODEL = 'MB7363'
 
 def logmsg(dst, msg):
