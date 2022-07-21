@@ -1,6 +1,5 @@
 #!/usr/bin/python
-# $Id: maxbotix.py 1563 2016-10-25 15:11:37Z mwall $
-# Copyright 2015 Matthew Wall
+# Copyright 2015-2022 Matthew Wall
 
 # From the maxbotix datasheet:
 #
@@ -41,21 +40,34 @@ import weewx.drivers
 import weewx.engine
 import weewx.units
 
+try:
+    # New-style weewx logging
+    import weeutil.logger
+    import logging
+    log = logging.getLogger(__name__)
+    def logdbg(msg):
+        log.debug(msg)
+    def loginf(msg):
+        log.info(msg)
+    def logerr(msg):
+        log.error(msg)
+except ImportError:
+    # Old-style weewx logging
+    import syslog
+    def logmsg(level, msg):
+        syslog.syslog(level, 'maxbotix: %s: %s' % msg)
+    def logdbg(msg):
+        logmsg(syslog.LOG_DEBUG, msg)
+    def loginf(msg):
+        logmsg(syslog.LOG_INFO, msg)
+    def logerr(msg):
+        logmsg(syslog.LOG_ERR, msg)
+
+
 DRIVER_NAME = "Maxbotix"
-DRIVER_VERSION = "0.5"
+DRIVER_VERSION = "0.6"
 DEFAULT_MODEL = 'MB7363'
 
-def logmsg(dst, msg):
-    syslog.syslog(dst, 'maxbotix: %s' % msg)
-
-def logdbg(msg):
-    logmsg(syslog.LOG_DEBUG, msg)
-
-def loginf(msg):
-    logmsg(syslog.LOG_INFO, msg)
-
-def logerr(msg):
-    logmsg(syslog.LOG_ERR, msg)
 
 def loader(config_dict, engine):
     return MaxbotixDriver(**config_dict['Maxbotix'])
@@ -106,7 +118,7 @@ class MaxbotixDriver(weewx.drivers.AbstractDevice):
                 yield _packet
                 if self.poll_interval:
                     time.sleep(self.poll_interval)
-            except (serial.serialutil.SerialException, weewx.WeeWxIOError), e:
+            except (serial.serialutil.SerialException, weewx.WeeWxIOError) as e:
                 logerr("Failed attempt %d of %d to get LOOP data: %s" %
                        (ntries, self.max_tries, e))
                 time.sleep(self.retry_wait)
@@ -135,7 +147,7 @@ class MaxbotixService(weewx.engine.StdService):
         try:
             with Sensor(self.model, self.port) as sensor:
                 v = sensor.get_range()
-        except (serial.serialutil.SerialException, weewx.WeeWxIOError), e:
+        except (serial.serialutil.SerialException, weewx.WeeWxIOError) as e:
             logerr("Failed to get reading: %s" % e)
         if v is not None:
             v /= 10.0 # convert to cm
@@ -195,7 +207,7 @@ class Sensor():
         # return value is always mm
         line = self.serial_port.read(self.data_length + 2)
         if line:
-            line = line.strip()
+            line = line.strip().decode()
         if line and len(line) == self.data_length + 1 and line[0] == 'R':
             try:
                 v = int(line[1:])
@@ -205,7 +217,7 @@ class Sensor():
                 if self.units == 'inch':
                     v *= 25.4
                 return v
-            except ValueError, e:
+            except ValueError as e:
                 raise weewx.WeeWxIOError("bogus value: %s" % e)
         else:
             raise weewx.WeeWxIOError("unexpected line: '%s'" % line)
@@ -244,9 +256,9 @@ if __name__ == "__main__":
     def test_driver():
         import weeutil.weeutil
         driver = MaxbotixDriver()
-        print "range is cm"
+        print("range is cm")
         for pkt in driver.genLoopPackets():
-            print weeutil.weeutil.timestamp_to_string(pkt['dateTime']), pkt
+            print("%s %s" % (weeutil.weeutil.timestamp_to_string(pkt['dateTime']), pkt))
 
     def test_service(model, port):
         import sys
@@ -267,7 +279,7 @@ if __name__ == "__main__":
                     'archive_services': 'user.maxbotix.MaxbotixService'}}}
         engine = weewx.engine.StdEngine(config)
         svc = MaxbotixService(engine, config)
-        print "range is inches"
+        print("range is inches")
         while True:
             data = {'usUnits': weewx.US}
             svc.get_data(data)
@@ -277,11 +289,11 @@ if __name__ == "__main__":
 
     def test_sensor(model, port):
         import sys
-        print "range is mm"
+        print("range is mm")
         with Sensor(model, port) as sensor:
             while True:
-                sys.stdout.write("\r%s" % sensor.get_range())
+                sys.stdout.write("\r%s   " % sensor.get_range())
                 sys.stdout.flush()
-                time.sleep(1)
+                time.sleep(0.1)
 
     main()

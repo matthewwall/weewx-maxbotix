@@ -1,5 +1,5 @@
 maxbotix - weewx service and driver for maxbotix range finder sensors
-Copyright 2015 Matthew Wall
+Copyright 2015-2022 Matthew Wall
 
 This extension can be used as a service to augment existing observations, or
 as a driver to collect only the maxbotix sensor readings.
