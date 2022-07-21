@@ -24,13 +24,18 @@
 #
 # You should see the sensor output, such as R2257.
 #
-# Next, verify that the weewx driver can talk to the sensor.  Run the driver
-# directly, for example:
+# Next, verify that the weewx extension code can talk to the sensor:
 #
 #   cd /home/weewx
-#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0
+#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0 --test-sensor
 #
-# Finally, verify that the driver works in a full weewx configuration.
+# Next, verify operation as driver or service.  This should emit weewx packets:
+#
+#   cd /home/weewx
+#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0 --test-driver
+#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0 --test-service
+#
+# If all of that worked, then it should work in a regular weewx installation.
 
 DRIVER_NAME = "Maxbotix"
 DRIVER_VERSION = "0.6"
@@ -86,6 +91,7 @@ weewx.units.obs_group_dict['range3'] = 'group_range'
 weewx.units.USUnits['group_range'] = 'inch'
 weewx.units.MetricUnits['group_range'] = 'cm'
 weewx.units.MetricWXUnits['group_range'] = 'cm'
+
 
 class MaxbotixConfigurationEditor(weewx.drivers.AbstractConfEditor):
     @property
