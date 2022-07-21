@@ -32,6 +32,10 @@
 #
 # Finally, verify that the driver works in a full weewx configuration.
 
+DRIVER_NAME = "Maxbotix"
+DRIVER_VERSION = "0.6"
+DEFAULT_MODEL = 'MB7363'
+
 import serial
 import syslog
 import time
@@ -64,13 +68,11 @@ except ImportError:
         logmsg(syslog.LOG_ERR, msg)
 
 
-DRIVER_NAME = "Maxbotix"
-DRIVER_VERSION = "0.6"
-DEFAULT_MODEL = 'MB7363'
-
-
 def loader(config_dict, engine):
     return MaxbotixDriver(**config_dict['Maxbotix'])
+
+def confeditor_loader():
+    return MaxbotixConfigurationEditor()
 
 
 schema = [('dateTime',  'INTEGER NOT NULL UNIQUE PRIMARY KEY'),
@@ -85,7 +87,24 @@ weewx.units.USUnits['group_range'] = 'inch'
 weewx.units.MetricUnits['group_range'] = 'cm'
 weewx.units.MetricWXUnits['group_range'] = 'cm'
 
+class MaxbotixConfigurationEditor(weewx.drivers.AbstractConfEditor):
+    @property
+    def default_stanza(self):
+        return """
+[Maxbotix]
+    # This section is for the Maxbotix driver.
 
+    # The port to which the device is connected
+    port = /dev/ttyUSB0
+
+    # The driver to use
+    driver = user.maxbotix
+"""
+    def prompt_for_settings(self):
+        print "Specify the serial port on which the device is connected, for"
+        print "example /dev/ttyUSB0 or /dev/ttyS0."
+        port = self._prompt('port', '/dev/ttyUSB0')
+        return {'port': port}
 
 class MaxbotixDriver(weewx.drivers.AbstractDevice):
 
