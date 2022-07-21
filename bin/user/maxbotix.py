@@ -107,8 +107,8 @@ class MaxbotixConfigurationEditor(weewx.drivers.AbstractConfEditor):
     driver = user.maxbotix
 """
     def prompt_for_settings(self):
-        print "Specify the serial port on which the device is connected, for"
-        print "example /dev/ttyUSB0 or /dev/ttyS0."
+        print("Specify the serial port on which the device is connected, for")
+        print("example /dev/ttyUSB0 or /dev/ttyS0.")
         port = self._prompt('port', '/dev/ttyUSB0')
         return {'port': port}
 
