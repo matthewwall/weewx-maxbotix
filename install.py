@@ -10,7 +10,7 @@ def loader():
 class MaxbotixInstaller(ExtensionInstaller):
     def __init__(self):
         super(MaxbotixInstaller, self).__init__(
-            version="0.5",
+            version="0.6",
             name='maxbotix',
             description='driver for maxbotix range-finding sensors',
             author="Matthew Wall",
