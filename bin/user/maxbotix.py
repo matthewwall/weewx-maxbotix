@@ -185,7 +185,7 @@ class Sensor():
 
     # information about each type of sensor.  the key is the model number.  the
     # associated tuple contains the units of the value that is returned, the
-    # value the sensor returns when the range is maxxed out, and the number or
+    # value the sensor returns when the range is maxxed out, and the number of
     # characters (excluding the R and trailing newline) in the value string.
     MODEL_INFO = {
         'MB1040': ['inch', 254, 3], # 6in min; 254in max; 1in res
@@ -232,14 +232,15 @@ class Sensor():
         # return value is always mm
         line = self.serial_port.read(self.data_length + 2)
         if line:
-            line = line.strip().decode()
+#            line = line.strip().decode()
+            line = line.strip()
         if line and len(line) == self.data_length + 1 and line[0] == 'R':
             try:
                 v = int(line[1:])
                 if v == self.no_target:
                     logdbg("no target detected: v=%s" % v)
                     v = None
-                if self.units == 'inch':
+                if self.units == 'inch' and v is not None:
                     v *= 25.4
                 return v
             except ValueError as e:
@@ -274,13 +275,13 @@ if __name__ == "__main__":
         if options.tc:
             test_sensor(options.model, options.port)
         elif options.td:
-            test_driver()
+            test_driver(options.model, options.port)
         elif options.ts:
             test_service(options.model, options.port)
 
-    def test_driver():
+    def test_driver(model, port):
         import weeutil.weeutil
-        driver = MaxbotixDriver()
+        driver = MaxbotixDriver(model=model, port=port)
         print("range is cm")
         for pkt in driver.genLoopPackets():
             print("%s %s" % (weeutil.weeutil.timestamp_to_string(pkt['dateTime']), pkt))
