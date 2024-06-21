@@ -1,6 +1,5 @@
 #!/usr/bin/python
-# $Id: maxbotix.py 1563 2016-10-25 15:11:37Z mwall $
-# Copyright 2015 Matthew Wall
+# Copyright 2015-2022 Matthew Wall
 
 # From the maxbotix datasheet:
 #
@@ -25,13 +24,22 @@
 #
 # You should see the sensor output, such as R2257.
 #
-# Next, verify that the weewx driver can talk to the sensor.  Run the driver
-# directly, for example:
+# Next, verify that the weewx extension code can talk to the sensor:
 #
 #   cd /home/weewx
-#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0
+#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0 --test-sensor
 #
-# Finally, verify that the driver works in a full weewx configuration.
+# Next, verify operation as driver or service.  This should emit weewx packets:
+#
+#   cd /home/weewx
+#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0 --test-driver
+#   sudo PYTHONPATH=bin python bin/user/maxbotix.py --port /dev/ttyUSB0 --test-service
+#
+# If all of that worked, then it should work in a regular weewx installation.
+
+DRIVER_NAME = "Maxbotix"
+DRIVER_VERSION = "0.7"
+DEFAULT_MODEL = 'MB7363'
 
 import serial
 import syslog
@@ -41,12 +49,8 @@ import weewx.drivers
 import weewx.engine
 import weewx.units
 
-DRIVER_NAME = "Maxbotix"
-DRIVER_VERSION = "0.7"
-DEFAULT_MODEL = 'MB7363'
-
 try:
-    # Test for new-style weewx logging by trying to import weeutil.logger
+    # New-style weewx logging
     import weeutil.logger
     import logging
     log = logging.getLogger(__name__)
@@ -72,6 +76,9 @@ except ImportError:
 def loader(config_dict, engine):
     return MaxbotixDriver(**config_dict['Maxbotix'])
 
+def confeditor_loader():
+    return MaxbotixConfigurationEditor()
+
 
 schema = [('dateTime',  'INTEGER NOT NULL UNIQUE PRIMARY KEY'),
           ('usUnits',   'INTEGER NOT NULL'),
@@ -86,6 +93,24 @@ weewx.units.MetricUnits['group_range'] = 'cm'
 weewx.units.MetricWXUnits['group_range'] = 'cm'
 
 
+class MaxbotixConfigurationEditor(weewx.drivers.AbstractConfEditor):
+    @property
+    def default_stanza(self):
+        return """
+[Maxbotix]
+    # This section is for the Maxbotix driver.
+
+    # The port to which the device is connected
+    port = /dev/ttyUSB0
+
+    # The driver to use
+    driver = user.maxbotix
+"""
+    def prompt_for_settings(self):
+        print("Specify the serial port on which the device is connected, for")
+        print("example /dev/ttyUSB0 or /dev/ttyS0.")
+        port = self._prompt('port', '/dev/ttyUSB0')
+        return {'port': port}
 
 class MaxbotixDriver(weewx.drivers.AbstractDevice):
 
@@ -160,7 +185,7 @@ class Sensor():
 
     # information about each type of sensor.  the key is the model number.  the
     # associated tuple contains the units of the value that is returned, the
-    # value the sensor returns when the range is maxxed out, and the number or
+    # value the sensor returns when the range is maxxed out, and the number of
     # characters (excluding the R and trailing newline) in the value string.
     MODEL_INFO = {
         'MB1040': ['inch', 254, 3], # 6in min; 254in max; 1in res
@@ -217,7 +242,7 @@ class Sensor():
                 if v == self.no_target:
                     logdbg("no target detected: v=%s" % v)
                     v = None
-                if self.units == 'inch':
+                if self.units == 'inch' and v is not None:
                     v *= 25.4
                 return v
             except ValueError as e:
@@ -252,13 +277,13 @@ if __name__ == "__main__":
         if options.tc:
             test_sensor(options.model, options.port)
         elif options.td:
-            test_driver()
+            test_driver(options.model, options.port)
         elif options.ts:
             test_service(options.model, options.port)
 
-    def test_driver():
+    def test_driver(model, port):
         import weeutil.weeutil
-        driver = MaxbotixDriver()
+        driver = MaxbotixDriver(model=model, port=port)
         print("range is cm")
         for pkt in driver.genLoopPackets():
             print("%s %s" % (weeutil.weeutil.timestamp_to_string(pkt['dateTime']), pkt))

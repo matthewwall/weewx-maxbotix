@@ -1,8 +1,8 @@
-# $Id: install.py 1563 2016-10-25 15:11:37Z mwall $
 # installer for Maxbotix
 # Copyright 2015 Matthew Wall
+# Distributed under the terms of the GNU Public License (GPLv3)
 
-from setup import ExtensionInstaller
+from weecfg.extension import ExtensionInstaller
 
 def loader():
     return MaxbotixInstaller()
@@ -10,7 +10,7 @@ def loader():
 class MaxbotixInstaller(ExtensionInstaller):
     def __init__(self):
         super(MaxbotixInstaller, self).__init__(
-            version="0.5",
+            version="0.6",
             name='maxbotix',
             description='driver for maxbotix range-finding sensors',
             author="Matthew Wall",

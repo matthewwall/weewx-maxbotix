@@ -1,3 +1,10 @@
+0.6 21jul2022
+* ensure python3 compatibility
+* fix installer to match weewx 4 conventions
+* added license file
+* handle None when no target aquired
+* pass options to driver when testing directly
+
 0.5 25oct2016
 * better support of different models
 
