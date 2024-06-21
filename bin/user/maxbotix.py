@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright 2015-2022 Matthew Wall
+# Copyright 2015-2024 Matthew Wall
 
 # From the maxbotix datasheet:
 #

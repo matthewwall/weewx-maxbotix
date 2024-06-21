@@ -1,5 +1,5 @@
 # installer for Maxbotix
-# Copyright 2015 Matthew Wall
+# Copyright 2015-2024 Matthew Wall
 # Distributed under the terms of the GNU Public License (GPLv3)
 
 from weecfg.extension import ExtensionInstaller

@@ -1,3 +1,7 @@
+0.7 21jun2024
+* better error handling for various types of serial failures
+* fixes to interactive testing options
+
 0.6 21jul2022
 * ensure python3 compatibility
 * fix installer to match weewx 4 conventions
